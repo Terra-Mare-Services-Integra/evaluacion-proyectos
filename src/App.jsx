@@ -7,7 +7,8 @@ const ERP_HOME_URL = "https://erp-home-nine.vercel.app";
 
 const NAV = [
   { id: "fsv", label: "FSV / Crew Boat", icon: "🚢", sub: ["Resumen", "P&L", "Cashflow", "Returns"] },
-  { id: "ais", label: "AIS Analyzer",    icon: "📡", sub: ["Dashboard", "Viajes", "Upload"] },
+  { id: "ais", label: "AIS Analyzer", icon: "📡", sub: ["Dashboard", "Viajes", "Upload"] },
+  { id: "gdm", label: "Evaluación GdM", icon: "⚓", sub: ["Assumptions", "P&L", "Cashflow", "Returns"] },
 ];
 
 const CSS = `
@@ -59,6 +60,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .sb-item.active .sb-item-dot{color:rgba(255,255,255,.6)}
 .sb-item-label{font-size:12px;font-weight:500;color:rgba(255,255,255,.65);flex:1}
 .sb-item.active .sb-item-label{color:#fff;font-weight:600}
+.sb-item-badge{font-family:var(--mono);font-size:7px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.4px;text-transform:uppercase}
+.sb-item-badge.nuevo{background:rgba(30,122,74,.35);color:#6EE7B7;border:1px solid rgba(110,231,183,.2)}
+.sb-item-badge.pronto{background:rgba(255,255,255,.06);color:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.08)}
 .sb-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
 .sb-email{font-size:9px;color:rgba(255,255,255,.22);font-family:var(--mono);margin-bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sb-home{width:100%;padding:6px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;text-align:center;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
@@ -73,6 +77,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .topbar-sep{color:var(--border);font-size:16px}
 .topbar-sub{font-size:11px;color:var(--muted)}
 .page-body{flex:1}
+
+/* PROXIMAMENTE */
+.pronto-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 40px}
+.pronto-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px;text-align:center;max-width:420px;width:100%}
+.pronto-icon{font-size:40px;margin-bottom:16px}
+.pronto-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.pronto-desc{font-size:12px;color:var(--muted);line-height:1.7}
+.pronto-badge{display:inline-block;margin-top:16px;font-family:var(--mono);font-size:9px;font-weight:700;padding:4px 12px;border-radius:4px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;letter-spacing:.5px;text-transform:uppercase}
 
 /* LOADING */
 .loading-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy)}
@@ -126,6 +138,22 @@ function LoginPage() {
   );
 }
 
+function ProntoPantalla({ modulo }) {
+  return (
+    <div className="pronto-wrap">
+      <div className="pronto-card">
+        <div className="pronto-icon">{modulo.icon}</div>
+        <div className="pronto-title">{modulo.label}</div>
+        <div className="pronto-desc">
+          Este módulo está en desarrollo activo.<br />
+          Pronto vas a poder acceder al modelo completo desde acá.
+        </div>
+        <span className="pronto-badge">En desarrollo</span>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -133,12 +161,21 @@ export default function App() {
   const [tab, setTab]         = useState("Resumen");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setLoading(false); });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => { setSession(s); setLoading(false); });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setLoading(false);
+    });
     return () => subscription.unsubscribe();
   }, []);
 
-  const goModulo = (id) => { setModulo(id); setTab(NAV.find(n => n.id === id).sub[0]); };
+  const goModulo = (id, firstTab) => {
+    setModulo(id);
+    setTab(firstTab);
+  };
 
   if (loading) return <><style>{CSS}</style><div className="loading-wrap"><div className="loading-text">Cargando...</div></div></>;
   if (!session) return <><style>{CSS}</style><LoginPage /></>;
@@ -162,6 +199,7 @@ export default function App() {
                 <div className="sb-section">
                   <span className="sb-section-icon">{n.icon}</span>
                   {n.label}
+                  {n.id === "gdm" && <span className="sb-item-badge nuevo">Nuevo</span>}
                 </div>
                 {n.sub.map(s => (
                   <button
@@ -171,6 +209,7 @@ export default function App() {
                   >
                     <span className="sb-item-dot">—</span>
                     <span className="sb-item-label">{s}</span>
+                    {n.id === "gdm" && <span className="sb-item-badge pronto">Pronto</span>}
                   </button>
                 ))}
               </div>
@@ -193,6 +232,7 @@ export default function App() {
           <div className="page-body">
             {modulo === "fsv" && <FSVProyecto tab={tab} setTab={setTab} />}
             {modulo === "ais" && <AISAnalyzer tab={tab} setTab={setTab} />}
+            {modulo === "gdm" && <ProntoPantalla modulo={nav} />}
           </div>
         </main>
       </div>
