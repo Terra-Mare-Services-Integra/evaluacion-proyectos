@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
-import AISAnalyzer from "./components/AISAnalyzer";
 
 const ERP_HOME_URL = "https://erp-home-nine.vercel.app";
 
 const NAV = [
-  { id: "ais", label: "AIS Analyzer", icon: "📡", sub: ["Dashboard", "Viajes", "Upload"] },
-  { id: "gdm", label: "Evaluación GdM", icon: "⚓", sub: ["Assumptions", "P&L", "Cashflow", "Returns"] },
+  { id: "fsv",  label: "FSV / Crew Boat",  icon: "🚢", url: "https://evaluacion-proyectos.vercel.app" },
+  { id: "ais",  label: "AIS Analyzer",     icon: "📡", url: "https://ais-analyzer.vercel.app" },
+  { id: "gdm",  label: "Evaluación GdM",   icon: "⚓", url: null },
 ];
 
 const CSS = `
@@ -74,15 +74,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .topbar-title{font-size:14px;font-weight:700;color:var(--navy)}
 .topbar-sep{color:var(--border);font-size:16px}
 .topbar-sub{font-size:11px;color:var(--muted)}
-.page-body{flex:1}
+.page-body{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 40px}
 
-/* PROXIMAMENTE */
-.pronto-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 40px}
-.pronto-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px;text-align:center;max-width:420px;width:100%}
-.pronto-icon{font-size:40px;margin-bottom:16px}
-.pronto-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
-.pronto-desc{font-size:12px;color:var(--muted);line-height:1.7}
-.pronto-badge{display:inline-block;margin-top:16px;font-family:var(--mono);font-size:9px;font-weight:700;padding:4px 12px;border-radius:4px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;letter-spacing:.5px;text-transform:uppercase}
+/* MODULO CARD */
+.modulo-launch{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px;text-align:center;max-width:420px;width:100%}
+.modulo-launch-icon{font-size:40px;margin-bottom:16px}
+.modulo-launch-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.modulo-launch-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:24px}
+.modulo-launch-btn{display:inline-block;padding:10px 24px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;text-decoration:none;letter-spacing:.3px}
+.modulo-launch-btn:hover{background:var(--navy)}
+.modulo-launch-badge{display:inline-block;margin-top:16px;font-family:var(--mono);font-size:9px;font-weight:700;padding:4px 12px;border-radius:4px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;letter-spacing:.5px;text-transform:uppercase}
 
 /* LOADING */
 .loading-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy)}
@@ -136,18 +137,25 @@ function LoginPage() {
   );
 }
 
-function ProntoPantalla({ modulo }) {
-  return (
-    <div className="pronto-wrap">
-      <div className="pronto-card">
-        <div className="pronto-icon">{modulo.icon}</div>
-        <div className="pronto-title">{modulo.label}</div>
-        <div className="pronto-desc">
-          Este módulo está en desarrollo activo.<br />
-          Pronto vas a poder acceder al modelo completo desde acá.
-        </div>
-        <span className="pronto-badge">En desarrollo</span>
+function ModuloPage({ modulo }) {
+  if (modulo.url) {
+    return (
+      <div className="modulo-launch">
+        <div className="modulo-launch-icon">{modulo.icon}</div>
+        <div className="modulo-launch-title">{modulo.label}</div>
+        <div className="modulo-launch-desc">Hacé click para abrir el módulo en su entorno dedicado.</div>
+        <button className="modulo-launch-btn" onClick={() => window.open(modulo.url, "_self")}>
+          Abrir {modulo.label} →
+        </button>
       </div>
+    );
+  }
+  return (
+    <div className="modulo-launch">
+      <div className="modulo-launch-icon">{modulo.icon}</div>
+      <div className="modulo-launch-title">{modulo.label}</div>
+      <div className="modulo-launch-desc">Este módulo está en desarrollo activo.<br/>Pronto vas a poder acceder al modelo completo desde acá.</div>
+      <span className="modulo-launch-badge">En desarrollo</span>
     </div>
   );
 }
@@ -155,8 +163,7 @@ function ProntoPantalla({ modulo }) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [modulo, setModulo]   = useState("ais");
-  const [tab, setTab]         = useState("Dashboard");
+  const [modulo, setModulo]   = useState("fsv");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -188,24 +195,16 @@ export default function App() {
 
           <nav className="sb-nav">
             {NAV.map(n => (
-              <div key={n.id}>
-                <div className="sb-section">
-                  <span className="sb-section-icon">{n.icon}</span>
-                  {n.label}
-                  {n.id === "gdm" && <span className="sb-item-badge nuevo">Nuevo</span>}
-                </div>
-                {n.sub.map(s => (
-                  <button
-                    key={s}
-                    className={`sb-item ${modulo === n.id && tab === s ? "active" : ""}`}
-                    onClick={() => { setModulo(n.id); setTab(s); }}
-                  >
-                    <span className="sb-item-dot">—</span>
-                    <span className="sb-item-label">{s}</span>
-                    {n.id === "gdm" && <span className="sb-item-badge pronto">Pronto</span>}
-                  </button>
-                ))}
-              </div>
+              <button
+                key={n.id}
+                className={`sb-item ${modulo === n.id ? "active" : ""}`}
+                onClick={() => setModulo(n.id)}
+              >
+                <span className="sb-item-dot">{n.icon}</span>
+                <span className="sb-item-label">{n.label}</span>
+                {n.id === "gdm" && <span className="sb-item-badge nuevo">Nuevo</span>}
+                {!n.url && n.id !== "gdm" && <span className="sb-item-badge pronto">—</span>}
+              </button>
             ))}
           </nav>
 
@@ -219,12 +218,9 @@ export default function App() {
         <main className="main">
           <div className="topbar">
             <span className="topbar-title">{nav.label}</span>
-            <span className="topbar-sep">·</span>
-            <span className="topbar-sub">{tab}</span>
           </div>
           <div className="page-body">
-            {modulo === "ais" && <AISAnalyzer tab={tab} setTab={setTab} />}
-            {modulo === "gdm" && <ProntoPantalla modulo={nav} />}
+            <ModuloPage modulo={nav} />
           </div>
         </main>
       </div>
