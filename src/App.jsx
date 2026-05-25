@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
-import FSVProyecto from "./components/FSVProyecto";
 import AISAnalyzer from "./components/AISAnalyzer";
 
 const ERP_HOME_URL = "https://erp-home-nine.vercel.app";
 
 const NAV = [
-  { id: "fsv", label: "FSV / Crew Boat", icon: "🚢", sub: ["Resumen", "P&L", "Cashflow", "Returns"] },
   { id: "ais", label: "AIS Analyzer", icon: "📡", sub: ["Dashboard", "Viajes", "Upload"] },
   { id: "gdm", label: "Evaluación GdM", icon: "⚓", sub: ["Assumptions", "P&L", "Cashflow", "Returns"] },
 ];
@@ -157,8 +155,8 @@ function ProntoPantalla({ modulo }) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [modulo, setModulo]   = useState("fsv");
-  const [tab, setTab]         = useState("Resumen");
+  const [modulo, setModulo]   = useState("ais");
+  const [tab, setTab]         = useState("Dashboard");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -171,11 +169,6 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
-
-  const goModulo = (id, firstTab) => {
-    setModulo(id);
-    setTab(firstTab);
-  };
 
   if (loading) return <><style>{CSS}</style><div className="loading-wrap"><div className="loading-text">Cargando...</div></div></>;
   if (!session) return <><style>{CSS}</style><LoginPage /></>;
@@ -230,7 +223,6 @@ export default function App() {
             <span className="topbar-sub">{tab}</span>
           </div>
           <div className="page-body">
-            {modulo === "fsv" && <FSVProyecto tab={tab} setTab={setTab} />}
             {modulo === "ais" && <AISAnalyzer tab={tab} setTab={setTab} />}
             {modulo === "gdm" && <ProntoPantalla modulo={nav} />}
           </div>
