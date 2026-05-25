@@ -3,227 +3,234 @@ import { supabase } from "./lib/supabase";
 
 const ERP_HOME_URL = "https://erp-home-nine.vercel.app";
 
-const NAV = [
-  { id: "fsv",  label: "FSV / Crew Boat",  icon: "🚢", url: "https://evaluacion-proyectos.vercel.app" },
-  { id: "ais",  label: "AIS Analyzer",     icon: "📡", url: "https://ais-analyzer.vercel.app" },
-  { id: "gdm",  label: "Evaluación GdM",   icon: "⚓", url: null },
+const MODULOS = [
+  {
+    id: "arena",
+    nombre: "Transporte de Arena",
+    descripcion: "Modelo económico para transporte de arena en buques Handysize. Análisis de viajes, costos y rentabilidad.",
+    icono: "⚓",
+    status: "activo",
+    url: "https://transporte-arena.vercel.app",
+    color: "#B07D0A",
+    tags: ["Handysize", "Costos", "Rentabilidad"],
+  },
+  {
+    id: "ais",
+    nombre: "AIS Analyzer",
+    descripcion: "Análisis de trayectorias AIS, viajes y servicios prestados por embarcaciones.",
+    icono: "📡",
+    status: "activo",
+    url: "https://ais-analyzer.vercel.app",
+    color: "#0D7AA8",
+    tags: ["AIS", "Embarcaciones", "Trayectorias"],
+  },
+  {
+    id: "gdm",
+    nombre: "Evaluación GdM",
+    descripcion: "Modelo financiero para evaluación de adquisición y operación del Golondrina de Mar. P&L, Cashflow y Returns.",
+    icono: "🚢",
+    status: "proximamente",
+    url: null,
+    color: "#213363",
+    tags: ["FSV", "Financiero", "Returns"],
+  },
 ];
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#213363;--blue:#235C96;--mid:#6381A7;--light:#A5B5CC;
-  --bg:#EEF2F7;--surface:#FFFFFF;--border:#D6E0ED;
-  --text:#213363;--muted:#6381A7;
-  --green:#1E7A4A;--green-bg:#D1FAE5;--green-border:#A7F3D0;
-  --sans:'Montserrat',sans-serif;--mono:'DM Mono',monospace;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #213363; --blue: #235C96; --mid: #6381A7; --light: #A5B5CC;
+  --bg: #EEF2F7; --surface: #FFFFFF; --border: #D6E0ED;
+  --text: #213363; --muted: #6381A7;
+  --sans: 'Montserrat', sans-serif; --mono: 'DM Mono', monospace;
 }
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f1d4a,#1a2a5e,#213363);padding:20px}
-.login-card{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.login-icon{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#dbeafe,#eff6ff);border:1.5px solid #93c5fd;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
-.login-title{text-align:center;font-size:17px;font-weight:700;color:var(--navy);margin-bottom:2px}
-.login-sub{text-align:center;font-size:11px;color:var(--muted);margin-bottom:24px;font-family:var(--mono);letter-spacing:.5px}
-.login-fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-.login-fg label{font-size:10px;color:var(--navy);letter-spacing:.5px;text-transform:uppercase;font-weight:600}
-.login-fg input{border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;font-family:var(--sans);outline:none;transition:border-color .15s}
-.login-fg input:focus{border-color:var(--blue)}
-.login-btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
-.login-btn:hover{background:var(--navy)}
-.login-btn:disabled{opacity:.6;cursor:not-allowed}
-.login-err{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px}
-.login-footer{text-align:center;font-size:10px;color:var(--muted);margin-top:18px;font-family:var(--mono)}
-.login-back{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:18px;cursor:pointer;border:none;background:none;padding:0;display:block}
-.login-back:hover{color:var(--navy)}
-
-/* SHELL */
-.shell{display:flex;min-height:100vh}
-
-/* SIDEBAR */
-.sidebar{width:228px;min-height:100vh;background:var(--navy);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;overflow-y:auto}
-.sb-brand{padding:18px 14px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-.sb-brand-icon{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:8px}
-.sb-brand-name{font-size:11px;font-weight:700;color:#fff;letter-spacing:.8px;text-transform:uppercase;line-height:1.3}
-.sb-brand-sub{font-size:9px;color:rgba(255,255,255,.3);font-family:var(--mono);margin-top:2px}
-.sb-nav{flex:1;padding:6px 8px}
-.sb-section{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:14px 8px 5px;display:flex;align-items:center;gap:6px}
-.sb-section-icon{font-size:12px}
-.sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;transition:background .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left;font-family:var(--sans)}
-.sb-item:hover{background:rgba(255,255,255,.07)}
-.sb-item.active{background:rgba(255,255,255,.13)}
-.sb-item-dot{font-size:11px;width:16px;text-align:center;flex-shrink:0;color:rgba(255,255,255,.25)}
-.sb-item.active .sb-item-dot{color:rgba(255,255,255,.6)}
-.sb-item-label{font-size:12px;font-weight:500;color:rgba(255,255,255,.65);flex:1}
-.sb-item.active .sb-item-label{color:#fff;font-weight:600}
-.sb-item-badge{font-family:var(--mono);font-size:7px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.4px;text-transform:uppercase}
-.sb-item-badge.nuevo{background:rgba(30,122,74,.35);color:#6EE7B7;border:1px solid rgba(110,231,183,.2)}
-.sb-item-badge.pronto{background:rgba(255,255,255,.06);color:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.08)}
-.sb-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
-.sb-email{font-size:9px;color:rgba(255,255,255,.22);font-family:var(--mono);margin-bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sb-home{width:100%;padding:6px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;text-align:center;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-.sb-home:hover{color:rgba(255,255,255,.55);border-color:rgba(255,255,255,.2)}
-.sb-logout{width:100%;padding:7px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.42);font-family:var(--sans);font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.3px}
-.sb-logout:hover{background:rgba(255,255,255,.12);color:#fff}
-
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{height:50px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;position:sticky;top:0;z-index:5;gap:10px;flex-shrink:0}
-.topbar-title{font-size:14px;font-weight:700;color:var(--navy)}
-.topbar-sep{color:var(--border);font-size:16px}
-.topbar-sub{font-size:11px;color:var(--muted)}
-.page-body{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 40px}
-
-/* MODULO CARD */
-.modulo-launch{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px;text-align:center;max-width:420px;width:100%}
-.modulo-launch-icon{font-size:40px;margin-bottom:16px}
-.modulo-launch-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
-.modulo-launch-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:24px}
-.modulo-launch-btn{display:inline-block;padding:10px 24px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;text-decoration:none;letter-spacing:.3px}
-.modulo-launch-btn:hover{background:var(--navy)}
-.modulo-launch-badge{display:inline-block;margin-top:16px;font-family:var(--mono);font-size:9px;font-weight:700;padding:4px 12px;border-radius:4px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;letter-spacing:.5px;text-transform:uppercase}
-
-/* LOADING */
-.loading-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy)}
-.loading-text{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase}
-
-@media(max-width:768px){
-  .sidebar{width:200px}
-  .topbar{padding:0 16px}
+.header {
+  background: var(--navy); padding: 0 40px; display: flex; align-items: center;
+  justify-content: space-between; height: 64px;
+  box-shadow: 0 2px 12px rgba(33,51,99,.2); position: sticky; top: 0; z-index: 10;
 }
-@media(max-width:600px){
-  .shell{flex-direction:column}
-  .sidebar{width:100%;height:auto;min-height:auto;position:relative}
-  .sb-nav{display:flex;flex-wrap:wrap;padding:6px}
-  .sb-section{display:none}
-  .sb-item{width:auto;flex:none;padding:6px 10px}
-  .sb-footer{flex-direction:row;display:flex;gap:8px;align-items:center;padding:8px 12px}
-  .sb-email,.sb-home{display:none}
-  .sb-logout{width:auto;padding:5px 12px}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-main { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; }
+.header-sub { font-size: 9px; color: rgba(255,255,255,.45); letter-spacing: .5px; font-family: var(--mono); margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-email { font-size: 10px; font-family: var(--mono); color: rgba(255,255,255,.4); }
+.back-btn {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.7); font-family: var(--sans); font-size: 10px; font-weight: 600;
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; letter-spacing: .3px;
 }
+.back-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+.hero {
+  background: linear-gradient(135deg, var(--navy) 0%, #1a2a5e 50%, #0f1d4a 100%);
+  padding: 52px 40px 48px; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(35,92,150,.2); pointer-events: none;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -80px; left: 20%;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(35,92,150,.1); pointer-events: none;
+}
+.hero-content { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; text-align: center; }
+.hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,.4); text-transform: uppercase; margin-bottom: 10px; }
+.hero-title { font-size: 32px; font-weight: 800; color: #fff; line-height: 1.15; margin-bottom: 10px; letter-spacing: -.5px; }
+.hero-title span { color: #7EB8E8; }
+.hero-desc { font-size: 13px; color: rgba(255,255,255,.5); max-width: 520px; line-height: 1.7; margin: 0 auto; }
+.hero-stats { display: flex; gap: 32px; margin-top: 28px; justify-content: center; }
+.hero-stat { display: flex; flex-direction: column; gap: 2px; }
+.hero-stat-n { font-family: var(--mono); font-size: 24px; font-weight: 700; color: #fff; }
+.hero-stat-l { font-size: 10px; color: rgba(255,255,255,.4); letter-spacing: .5px; text-transform: uppercase; }
+
+.content { max-width: 1200px; margin: 0 auto; padding: 36px 40px 60px; }
+.section-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2.5px; color: var(--muted);
+  text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.modulos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 36px; }
+
+.modulo-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 22px; transition: all .2s; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.modulo-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--card-color, var(--blue)); opacity: 0; transition: opacity .2s;
+}
+.modulo-card.activo { cursor: pointer; box-shadow: 0 2px 8px rgba(33,51,99,.06); }
+.modulo-card.activo:hover { border-color: var(--card-color, var(--blue)); box-shadow: 0 4px 20px rgba(33,51,99,.12); transform: translateY(-2px); }
+.modulo-card.activo:hover::before { opacity: 1; }
+.modulo-card.proximamente { opacity: .75; }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.card-icono { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.badge-activo { font-family: var(--mono); font-size: 8px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; letter-spacing: .5px; text-transform: uppercase; }
+.badge-prox { font-family: var(--mono); font-size: 8px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; letter-spacing: .5px; text-transform: uppercase; }
+
+.card-body { flex: 1; }
+.card-nombre { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; line-height: 1.3; }
+.card-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 12px; }
+.card-tag { font-family: var(--mono); font-size: 9px; padding: 2px 7px; background: #F0F4F8; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); }
+.card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); margin-top: auto; }
+.card-link { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; letter-spacing: .3px; text-transform: uppercase; cursor: pointer; border: none; background: none; font-family: var(--sans); padding: 0; }
+.card-link:hover { text-decoration: underline; }
+.card-link-disabled { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: .3px; }
+
+.portal-footer { background: var(--navy); padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; }
+.footer-left { font-size: 11px; color: rgba(255,255,255,.3); font-family: var(--mono); letter-spacing: .5px; }
+.footer-right { font-size: 10px; color: rgba(255,255,255,.2); font-family: var(--mono); }
+
+.loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
+.loading-text { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
 `;
 
-function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [pwd, setPwd]     = useState("");
-  const [err, setErr]     = useState("");
-  const [busy, setBusy]   = useState(false);
-
-  const submit = async (e) => {
-    e.preventDefault(); setErr(""); setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
-    if (error) setErr("Email o contraseña incorrectos.");
-    setBusy(false);
-  };
+function ModuloCard({ mod }) {
+  const isActivo = mod.status === "activo";
+  const handleClick = () => { if (isActivo && mod.url) window.open(mod.url, "_self"); };
 
   return (
-    <div className="login-wrap">
-      <div className="login-card">
-        <button className="login-back" onClick={() => window.location.href = ERP_HOME_URL}>← Volver al home</button>
-        <div className="login-icon">📊</div>
-        <div className="login-title">Evaluación de Proyectos</div>
-        <div className="login-sub">Grupo Marítimo · Herramientas de análisis</div>
-        {err && <div className="login-err">{err}</div>}
-        <form onSubmit={submit}>
-          <div className="login-fg"><label>Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" required autoFocus /></div>
-          <div className="login-fg"><label>Contraseña</label><input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder="••••••••" required /></div>
-          <button type="submit" className="login-btn" disabled={busy}>{busy ? "Ingresando..." : "Ingresar"}</button>
-        </form>
-        <div className="login-footer">© {new Date().getFullYear()} Grupo Marítimo · Acceso restringido</div>
+    <div className={`modulo-card ${mod.status}`} style={{ "--card-color": mod.color }} onClick={handleClick}>
+      <div className="card-top">
+        <div className="card-icono" style={{ background: `${mod.color}18`, border: `1px solid ${mod.color}30` }}>
+          {mod.icono}
+        </div>
+        <div>
+          {isActivo
+            ? <span className="badge-activo">● Activo</span>
+            : <span className="badge-prox">Próximamente</span>
+          }
+        </div>
       </div>
-    </div>
-  );
-}
-
-function ModuloPage({ modulo }) {
-  if (modulo.url) {
-    return (
-      <div className="modulo-launch">
-        <div className="modulo-launch-icon">{modulo.icon}</div>
-        <div className="modulo-launch-title">{modulo.label}</div>
-        <div className="modulo-launch-desc">Hacé click para abrir el módulo en su entorno dedicado.</div>
-        <button className="modulo-launch-btn" onClick={() => window.open(modulo.url, "_self")}>
-          Abrir {modulo.label} →
-        </button>
+      <div className="card-body">
+        <div className="card-nombre">{mod.nombre}</div>
+        <div className="card-desc">{mod.descripcion}</div>
+        <div className="card-tags">{mod.tags.map(t => <span key={t} className="card-tag">{t}</span>)}</div>
       </div>
-    );
-  }
-  return (
-    <div className="modulo-launch">
-      <div className="modulo-launch-icon">{modulo.icon}</div>
-      <div className="modulo-launch-title">{modulo.label}</div>
-      <div className="modulo-launch-desc">Este módulo está en desarrollo activo.<br/>Pronto vas a poder acceder al modelo completo desde acá.</div>
-      <span className="modulo-launch-badge">En desarrollo</span>
+      <div className="card-footer">
+        {isActivo
+          ? <span className="card-link" style={{ color: mod.color }}>Abrir módulo →</span>
+          : <span className="card-link-disabled">En desarrollo</span>
+        }
+      </div>
     </div>
   );
 }
 
 export default function App() {
-  const [session, setSession] = useState(null);
+  const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
-  const [modulo, setModulo]   = useState("fsv");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      if (session) setUserEmail(session.user.email);
       setLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setLoading(false);
-    });
-    return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return <><style>{CSS}</style><div className="loading-wrap"><div className="loading-text">Cargando...</div></div></>;
-  if (!session) return <><style>{CSS}</style><LoginPage /></>;
+  const activos = MODULOS.filter(m => m.status === "activo");
+  const proximos = MODULOS.filter(m => m.status === "proximamente");
 
-  const nav = NAV.find(n => n.id === modulo);
+  if (loading) return <><style>{CSS}</style><div className="loading"><div className="loading-text">Cargando...</div></div></>;
 
   return (
     <>
       <style>{CSS}</style>
-      <div className="shell">
-        <aside className="sidebar">
-          <div className="sb-brand">
-            <div className="sb-brand-icon">📊</div>
-            <div className="sb-brand-name">Evaluación<br/>de Proyectos</div>
-            <div className="sb-brand-sub">Grupo Marítimo ERP</div>
-          </div>
 
-          <nav className="sb-nav">
-            {NAV.map(n => (
-              <button
-                key={n.id}
-                className={`sb-item ${modulo === n.id ? "active" : ""}`}
-                onClick={() => setModulo(n.id)}
-              >
-                <span className="sb-item-dot">{n.icon}</span>
-                <span className="sb-item-label">{n.label}</span>
-                {n.id === "gdm" && <span className="sb-item-badge nuevo">Nuevo</span>}
-                {!n.url && n.id !== "gdm" && <span className="sb-item-badge pronto">—</span>}
-              </button>
-            ))}
-          </nav>
+      <header className="header">
+        <div className="header-brand">
+          <div>
+            <div className="header-main">Evaluación de Proyectos</div>
+            <div className="header-sub">Grupo Marítimo · Herramientas de análisis</div>
+          </div>
+        </div>
+        <div className="header-right">
+          {userEmail && <span className="header-email">{userEmail}</span>}
+          <button className="back-btn" onClick={() => window.open(ERP_HOME_URL, "_self")}>← Volver al ERP</button>
+        </div>
+      </header>
 
-          <div className="sb-footer">
-            <div className="sb-email">{session.user.email}</div>
-            <button className="sb-home" onClick={() => window.open(ERP_HOME_URL, "_self")}>← ERP Home</button>
-            <button className="sb-logout" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+      <div className="hero">
+        <div className="hero-content">
+          <div className="hero-eyebrow">Herramientas de análisis</div>
+          <h1 className="hero-title">Evaluación de <span>Proyectos</span></h1>
+          <p className="hero-desc">Modelos financieros y análisis operativo para decisiones de inversión marítima.</p>
+          <div className="hero-stats">
+            <div className="hero-stat">
+              <div className="hero-stat-n">{MODULOS.length}</div>
+              <div className="hero-stat-l">Módulos</div>
+            </div>
+            <div className="hero-stat">
+              <div className="hero-stat-n">{activos.length}</div>
+              <div className="hero-stat-l">Activos</div>
+            </div>
           </div>
-        </aside>
-
-        <main className="main">
-          <div className="topbar">
-            <span className="topbar-title">{nav.label}</span>
-          </div>
-          <div className="page-body">
-            <ModuloPage modulo={nav} />
-          </div>
-        </main>
+        </div>
       </div>
+
+      <div className="content">
+        <div className="section-label">Módulos activos</div>
+        <div className="modulos-grid">
+          {activos.map(mod => <ModuloCard key={mod.id} mod={mod} />)}
+        </div>
+        <div className="section-label" style={{ marginTop: 8 }}>Próximamente</div>
+        <div className="modulos-grid">
+          {proximos.map(mod => <ModuloCard key={mod.id} mod={mod} />)}
+        </div>
+      </div>
+
+      <footer className="portal-footer">
+        <div className="footer-left">Grupo Marítimo · Confidencial</div>
+        <div className="footer-right">v1.0 — {new Date().getFullYear()}</div>
+      </footer>
     </>
   );
 }
